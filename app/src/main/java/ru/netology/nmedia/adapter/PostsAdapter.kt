@@ -7,6 +7,7 @@ import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
@@ -40,7 +41,7 @@ class PostViewHolder(
 
     fun bind(post: Post) {
         binding.apply {
-            avatar.load("http://192.168.88.93:9999/avatars/${post.authorAvatar}")
+            avatar.load("${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}")
             author.text = post.author
             published.text = post.published
             content.text = post.content
@@ -49,7 +50,7 @@ class PostViewHolder(
             like.text = "${post.likes}"
             post.attachment?.let {
                 imageAttach.visibility = View.VISIBLE
-                imageAttach.load("http://192.168.88.93:9999/images/${it.url}", false)
+                imageAttach.load("${BuildConfig.BASE_URL}/images/${it.url}", false)
             }
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
