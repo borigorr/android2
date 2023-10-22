@@ -2,6 +2,7 @@ package ru.netology.nmedia.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.*
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.*
@@ -42,7 +43,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
             }
 
-            override fun onError(e: Exception) {
+            override fun onError(t: Throwable) {
                 _data.postValue(FeedModel(error = true))
             }
         })
@@ -51,7 +52,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun save() {
         edited.value?.let {
             repository.saveAsync(it) {
-
+                _data.postValue(FeedModel(error = true))
             }
             _postCreated.postValue(Unit)
         }
@@ -81,29 +82,33 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         setPost(newPost)
         if (oldLikeByMe) {
             repository.deleteLikeByIdAsync(id) {
-                val newPost = newPost.copy(likedByMe = true, likes =  post.likes + 1)
-                setPost(newPost)
+                val newPost = newPost.copy(likedByMe = true, likes =  post.likes)
+                setPost(post = newPost, error = true)
             }
         } else {
             repository.likeByIdAsync(id) {
-                val newPost = newPost.copy(likedByMe = false, likes =  post.likes - 1)
-                setPost(newPost)
+                val newPost = newPost.copy(likedByMe = false, likes =  post.likes)
+                setPost(post = newPost, error = true)
             }
         }
     }
 
 
-    private fun setPost(post: Post) {
-        _data.postValue(
-            _data.value?.posts?.let {
-                it.map {
-                    if (post.id == it.id) {
-                        post
-                    } else {
-                        it
-                    }
+    private fun setPost(post: Post, error: Boolean? = null) {
+        if (data.value == null) {
+            return
+        }
+        val posts = data.value!!.posts.let {
+            it.map {
+                if (post.id == it.id) {
+                    post
+                } else {
+                    it
                 }
-            }?.let { _data.value?.copy(posts = it) }
+            }
+        }
+        _data.postValue(
+            data.value?.copy(posts = posts, error = error ?: data.value!!.error )
         )
     }
 

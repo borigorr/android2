@@ -6,10 +6,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
@@ -66,13 +68,19 @@ class FeedFragment : Fragment() {
             binding.swiperefreshEmpty.isRefreshing = state.loading
 
             binding.errorGroup.isVisible = state.error
-            binding.emptyText.isVisible = state.empty
+            binding.emptyText.isVisible =  state.empty && !state.error && state.refreshing
+
             binding.swiperefresh.isVisible = !state.empty
             binding.swiperefreshEmpty.isVisible = state.empty
+            if (state.error) {
+                Toast.makeText(activity, R.string.http_error, Toast.LENGTH_SHORT)
+                    .show();
+            }
 
         }
 
         binding.retryButton.setOnClickListener {
+
             viewModel.loadPosts()
         }
 
