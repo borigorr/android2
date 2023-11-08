@@ -8,15 +8,17 @@ import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toDto
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.exceptions.HttpErrorException
-import java.lang.Exception
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import ru.netology.nmedia.dto.toEntity
+import kotlin.Exception
 
 class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override val data = dao.getAll().map(List<PostEntity>::toDto)
     override suspend fun getAll(){
         val  response = PostApi.service.getAll()
+
         if (!response.isSuccessful) {
             throw HttpErrorException()
         }
@@ -24,28 +26,62 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         dao.insert(body.toEntity())
     }
 
-    override suspend fun likeById(id: Long) {
-        val response = PostApi.service.likeById(id)
+    override suspend fun like(post: Post) {
+        val postEntity = dao.getById(post.id)
+        if (postEntity.serverId == 0L) {
+            return
+        }
+        dao.likeById(post.id)
+        val response = PostApi.service.likeById(postEntity.serverId)
         if (!response.isSuccessful) {
+            dao.likeById(post.id)
             throw HttpErrorException()
         }
         val post = response.body() ?: throw HttpErrorException()
-        dao.insert(PostEntity.fromDto(post))
+        dao.update(post.toEntity().copy(id = post.id))
     }
 
-    override suspend fun deleteLikeById(id: Long) {
-        val response = PostApi.service.deleteLikeById(id)
+    override suspend fun deleteLike(post: Post) {
+        dao.likeById(post.id)
+        val response = PostApi.service.deleteLikeById(post.serverId)
         if (!response.isSuccessful) {
+            dao.likeById(post.id)
             throw HttpErrorException()
         }
-        val post = response.body() ?: throw HttpErrorException()
-        dao.insert(PostEntity.fromDto(post))
-        dao.likeById(id)
+        val serverPost = response.body() ?: throw HttpErrorException()
+        dao.update(serverPost.toEntity(post.id))
     }
 
     override suspend fun save(post: Post) {
+        if (post.id == 0L) {
+            create(post)
+            return
+        }
+        update(post)
+    }
+
+    private suspend fun create(post: Post) {
+        val id = dao.insert(PostEntity.fromDto(post)) ?: throw Exception()
+        coroutineScope {
+            async {
+                val response = PostApi.service.save(post)
+                if (!response.isSuccessful) {
+                    dao.removeById(id)
+                    throw HttpErrorException()
+                }
+                val body =  response.body()
+                if (body == null) {
+                    dao.removeById(id)
+                } else {
+                    dao.update(body.toEntity(id))
+                }
+            }
+        }
+    }
+
+    private suspend fun update(post: Post) {
         val oldPost = data.value?.find { it.id == post.id } ?: throw Exception()
-        dao.insert(PostEntity.fromDto(post))
+        dao.update(PostEntity.fromDto(post))
         coroutineScope {
             async {
                 val response = PostApi.service.save(post)
@@ -56,11 +92,11 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             }
         }
     }
-    override suspend fun removeById(id: Long) {
-        val response = PostApi.service.removeById(id)
+    override suspend fun remove(post: Post) {
+        dao.removeById(post.id)
+        val response = PostApi.service.removeById(post.serverId)
         if (!response.isSuccessful) {
             throw  throw HttpErrorException()
         }
-        dao.removeById(id)
     }
 }

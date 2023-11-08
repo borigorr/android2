@@ -41,7 +41,7 @@ class FeedFragment : Fragment() {
             }
 
             override fun onRemove(post: Post) {
-                viewModel.removeById(post.id)
+                viewModel.remove(post)
             }
 
             override fun onShare(post: Post) {
@@ -58,9 +58,6 @@ class FeedFragment : Fragment() {
         })
         binding.list.adapter = adapter
         binding.swiperefresh.setOnRefreshListener {
-            viewModel.loadPosts()
-        }
-        binding.swiperefreshEmpty.setOnRefreshListener {
             viewModel.loadPosts()
         }
         viewModel.dataState.observe(viewLifecycleOwner) { dataState ->

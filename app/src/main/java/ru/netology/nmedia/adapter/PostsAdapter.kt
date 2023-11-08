@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -41,6 +42,10 @@ class PostViewHolder(
 
     fun bind(post: Post) {
         binding.apply {
+            val postFromServer = post.serverId != 0L
+            like.isVisible = postFromServer
+            share.isVisible = postFromServer
+
             avatar.load("${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}")
             author.text = post.author
             published.text = post.published

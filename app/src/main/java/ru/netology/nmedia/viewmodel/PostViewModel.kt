@@ -85,9 +85,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
             val oldLikeByMe = post.likedByMe
             if (oldLikeByMe) {
-                repository.deleteLikeById(id)
+                repository.deleteLike(post)
             } else {
-                repository.likeById(id)
+                repository.like(post)
             }
         } catch (e: Throwable) {
             _dataState.value = FeedModelState(error = true)
@@ -95,9 +95,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     }
 
-    fun removeById(id: Long) =viewModelScope.launch {
+    fun remove(post: Post) =viewModelScope.launch {
         try {
-            repository.removeById(id)
+            repository.remove(post)
         } catch (e: Throwable) {
             _dataState.value = FeedModelState(error = true)
         }

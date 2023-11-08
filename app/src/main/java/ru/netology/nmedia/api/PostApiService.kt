@@ -13,6 +13,7 @@ import retrofit2.http.Path
 import retrofit2.http.Body
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.ServerPost
 import java.util.concurrent.TimeUnit
 
 
@@ -31,19 +32,19 @@ private val retrofit = Retrofit.Builder()
 
 interface PostApiService {
     @GET("slow/posts")
-    suspend fun getAll(): Response<List<Post>>
+    suspend fun getAll(): Response<List<ServerPost>>
 
-    @POST("slow/posts/{id}/likes")
-    suspend fun likeById(@Path("id") id: Long): Response<Post>
+    @POST("posts/{id}/likes")
+    suspend fun likeById(@Path("id") id: Long): Response<ServerPost>
 
-    @DELETE("slow/posts/{id}/likes")
-    suspend fun deleteLikeById(@Path("id") id: Long): Response<Post>
+    @DELETE("posts/{id}/likes")
+    suspend fun deleteLikeById(@Path("id") id: Long): Response<ServerPost>
 
     @DELETE("slow/posts/{id}")
     suspend fun  removeById(@Path("id") id: Long): Response<Unit>
 
     @POST("posts")
-    suspend fun  save(@Body post: Post): Response<Post>
+    suspend fun  save(@Body post: Post): Response<ServerPost>
 }
 
 
