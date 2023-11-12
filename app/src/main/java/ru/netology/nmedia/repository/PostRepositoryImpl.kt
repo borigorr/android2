@@ -97,20 +97,15 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     private suspend fun update(post: Post) {
         val oldPost = data.value?.find { it.id == post.id } ?: throw Exception()
         dao.update(PostEntity.fromDto(post))
-        coroutineScope {
-            async {
-                try {
-                    val response = PostApi.service.save(post.copy(id = post.serverId))
-                    if (!response.isSuccessful) {
-                        dao.insert(PostEntity.fromDto(oldPost))
-                        throw HttpErrorException()
-                    }
-                } catch (e: Throwable) {
-                    dao.insert(PostEntity.fromDto(oldPost))
-                    throw HttpErrorException()
-                }
-
+        try {
+            val response = PostApi.service.save(post.copy(id = post.serverId))
+            if (!response.isSuccessful) {
+                dao.insert(PostEntity.fromDto(oldPost))
+                throw HttpErrorException()
             }
+        } catch (e: Throwable) {
+            dao.insert(PostEntity.fromDto(oldPost))
+            throw HttpErrorException()
         }
     }
 
