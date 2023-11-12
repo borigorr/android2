@@ -100,7 +100,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         coroutineScope {
             async {
                 try {
-                    val response = PostApi.service.save(post)
+                    val response = PostApi.service.save(post.copy(id = post.serverId))
                     if (!response.isSuccessful) {
                         dao.insert(PostEntity.fromDto(oldPost))
                         throw HttpErrorException()
