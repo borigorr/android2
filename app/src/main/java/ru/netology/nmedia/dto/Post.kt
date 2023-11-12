@@ -9,6 +9,7 @@ data class Post(
     val likes: Int = 0,
     val authorAvatar: String,
     val attachment: PostAttachment? = null,
+    val serverId: Long = 0,
 )
 
 data class PostAttachment (

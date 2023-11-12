@@ -32,6 +32,7 @@ class FeedFragment : Fragment() {
 
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
+                findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
                 viewModel.edit(post)
             }
 
@@ -40,7 +41,7 @@ class FeedFragment : Fragment() {
             }
 
             override fun onRemove(post: Post) {
-                viewModel.removeById(post.id)
+                viewModel.remove(post)
             }
 
             override fun onShare(post: Post) {
@@ -59,20 +60,21 @@ class FeedFragment : Fragment() {
         binding.swiperefresh.setOnRefreshListener {
             viewModel.loadPosts()
         }
-        binding.swiperefreshEmpty.setOnRefreshListener {
-            viewModel.loadPosts()
-        }
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.swiperefresh.isRefreshing = state.loading
-            binding.swiperefreshEmpty.isRefreshing = state.loading
+        viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
 
-            binding.errorGroup.isVisible = state.error
-            binding.emptyText.isVisible =  state.empty && !state.error && state.refreshing
+            viewModel.data.observe(viewLifecycleOwner) { state ->
+                adapter.submitList(state.posts)
 
-            binding.swiperefresh.isVisible = !state.empty
-            binding.swiperefreshEmpty.isVisible = state.empty
-            if (state.error) {
+                binding.swiperefresh.isVisible = !state.empty
+                binding.swiperefreshEmpty.isVisible = state.empty
+                binding.emptyText.isVisible =  state.empty && !dataState.error && dataState.refreshing
+            }
+            binding.swiperefresh.isRefreshing = dataState.loading
+            binding.swiperefreshEmpty.isRefreshing = dataState.loading
+
+            binding.errorGroup.isVisible = dataState.error
+
+            if (dataState.error) {
                 Toast.makeText(activity, R.string.http_error, Toast.LENGTH_SHORT)
                     .show();
             }
